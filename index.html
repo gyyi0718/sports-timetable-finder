@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 시간표 운동 찾기</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--sub:#5b6878;--line:#dde3ea;--accent:#1f6f5c;--accent2:#e8f3ef;--warn:#9a5b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--card:#1b222a;--ink:#e6ebf0;--sub:#9fadbb;--line:#2c3742;--accent:#5cc2a4;--accent2:#1f2f2a;--warn:#e0a24a}}
+:root[data-theme="dark"]{--bg:#12171c;--card:#1b222a;--ink:#e6ebf0;--sub:#9fadbb;--line:#2c3742;--accent:#5cc2a4;--accent2:#1f2f2a;--warn:#e0a24a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Malgun Gothic",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:4px 0 2px}
+.lead{color:var(--sub);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.ask{display:flex;gap:8px;flex-wrap:wrap}
+.ask input{flex:1 1 280px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:15px;background:var(--bg);color:var(--ink)}
+button{padding:10px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-size:14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+.ex{margin-top:8px;font-size:13px;color:var(--sub)}
+.ex a{color:var(--accent);cursor:pointer;text-decoration:underline;margin-right:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{font-size:13px;color:var(--sub);display:block;margin-bottom:4px}
+select,input[type=number]{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:14px}
+.days{display:flex;gap:4px;flex-wrap:wrap}
+.days span{border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer;user-select:none}
+.days span.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.parsed{font-size:13px;color:var(--accent);margin-top:10px;min-height:18px}
+.stat{font-size:14px;color:var(--sub);margin:4px 2px 10px}
+.list{display:grid;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.item b{font-size:15px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:12px;background:var(--accent2);color:var(--accent);border-radius:5px;padding:2px 7px}
+.why{font-size:12.5px;color:var(--sub);margin-top:6px}
+.price{font-weight:700;white-space:nowrap}
+.side h3{font-size:15px;margin:0 0 8px}
+.side a{color:var(--accent)}
+.note{font-size:12px;color:var(--sub)}
+details summary{cursor:pointer;font-size:14px;margin:6px 0}
+.cols{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.more{margin:10px auto 0;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>내 시간표 운동 찾기</h1>
+  <p class="lead">올림픽·일산 스포츠센터의 공개 강좌 데이터로, 내가 갈 수 있는 요일·시간·예산에 맞는 강좌를 찾아드립니다.</p>
+
+  <div class="card">
+    <div class="ask">
+      <input id="q" placeholder="예) 화목 저녁 7시 이후, 월 10만원 이하로 요가나 필라테스" autocomplete="off">
+      <button id="go">조건 찾기</button>
+    </div>
+    <div class="ex">예시:
+      <a data-q="주말 오전에 아이랑 같이 할 수 있는 운동">주말 오전, 청소년</a>
+      <a data-q="평일 퇴근 후 8시 이후 헬스나 스피닝 월 8만원 이하">평일 8시 이후, 8만원 이하</a>
+      <a data-q="월수금 아침 6시 수영">월수금 아침 수영</a>
+      <a data-q="일산 화목 오후 탁구">일산 화목 탁구</a>
+    </div>
+    <div class="parsed" id="parsed"></div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>센터</label><select id="center"><option value="">전체</option><option>올림픽스포츠센터</option><option>일산스포츠센터</option></select></div>
+      <div><label>종목</label><select id="sport"><option value="">전체</option></select></div>
+      <div><label>시작 시각 (이후)</label><select id="from"></select></div>
+      <div><label>끝나는 시각 (이전)</label><select id="to"></select></div>
+      <div><label>월 최대 금액 (원)</label><input id="max" type="number" step="10000" placeholder="제한 없음"></div>
+      <div><label>대상</label><select id="target"><option value="">전체</option><option value="청소년">청소년 가능</option><option value="성인">성인 가능</option><option value="여성">성인여성 반</option></select></div>
+    </div>
+    <div style="margin-top:12px"><label>갈 수 있는 요일 (선택한 요일만으로 다닐 수 있는 강좌)</label>
+      <div class="days" id="days"></div></div>
+    <div style="margin-top:12px"><button class="ghost" id="reset">조건 초기화</button></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="stat" id="stat"></div>
+      <div class="list" id="list"></div>
+      <button class="ghost more" id="more" hidden>더 보기</button>
+    </div>
+    <div class="side">
+      <div class="card"><h3>집에서 먼저 해보기</h3><div id="videos" class="note">관련 온라인 강습 영상이 여기에 표시됩니다.</div></div>
+      <div class="card"><h3>자주 묻는 질문</h3><div id="faq"></div></div>
+      <p class="note">데이터: 한국체육산업개발(주) 공공데이터(공공데이터포털) — 올림픽스포츠센터 강좌정보(2026-06-01), 일산스포츠센터 강좌정보(2026-07-31), 온라인 강습 동영상, 자주 묻는 질문정보. 정원·접수 여부는 센터 홈페이지에서 확인하세요.</p>
+    </div>
+  </div>
+</div>
+<script src="data.js"></script>
+<script>
+const D=window.DATA, C=D.classes, DAYS=["월","화","수","목","금","토","일"];
+const $=id=>document.getElementById(id);
+const SYN={"요가":["요가"],"필라테스":["필라테스","기구필라테스"],"헬스":["헬스","헬스PT","웨이트"],"수영":["수영","아쿠아"],"테니스":["테니스"],"탁구":["탁구","탁구단기속성"],"골프":["골프"],"배드민턴":["배드민턴"],"스피닝":["스피닝"],"댄스":["댄스스포츠","줌바","댄스"],"농구":["농구"],"축구":["실내축구","축구"],"승마":["실내승마교실"],"스쿼시":["스쿼시"],"검도":["검도"],"당구":["당구"],"자전거":["로드사이클","스피닝"],"사이클":["로드사이클"],"TRX":["TRX"]};
+const GOAL={"다이어트":["스피닝","줌바","댄스스포츠","수영","TRX"],"살":["스피닝","줌바","수영","TRX"],"근력":["헬스","TRX","기구필라테스"],"허리":["필라테스","기구필라테스","요가","수영"],"재활":["요가","필라테스","아쿠아"],"스트레스":["요가","댄스스포츠","테니스"]};
+const toMin=t=>{const[a,b]=t.split(":").map(Number);return a*60+b};
+const hours=[...Array(19)].map((_,i)=>i+5);
+function fillTimes(){for(const id of["from","to"]){const s=$(id);s.innerHTML='<option value="">상관없음</option>'+hours.map(h=>`<option value="${h}">${String(h).padStart(2,"0")}:00</option>`).join("")}}
+function fillSports(){const cnt={};C.forEach(c=>cnt[c.sport]=(cnt[c.sport]||0)+1);$("sport").innerHTML='<option value="">전체</option>'+Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<option value="${s}">${s} (${n})</option>`).join("")}
+const st={days:new Set(),sports:null};
+function fillDays(){$("days").innerHTML=DAYS.map(d=>`<span data-d="${d}">${d}</span>`).join("");$("days").onclick=e=>{const d=e.target.dataset.d;if(!d)return;st.days.has(d)?st.days.delete(d):st.days.add(d);render()}}
+function syncDays(){[...$("days").children].forEach(s=>s.classList.toggle("on",st.days.has(s.dataset.d)))}
+// 자연어 조건 분석 (규칙 기반)
+function parse(q){
+  const r={days:new Set(),from:"",to:"",max:"",center:"",sports:null,target:"",notes:[]};
+  if(/일산/.test(q))r.center="일산스포츠센터"; if(/올림픽|송파|방이/.test(q))r.center="올림픽스포츠센터";
+  if(/평일|주중/.test(q))["월","화","수","목","금"].forEach(d=>r.days.add(d));
+  if(/주말/.test(q))["토","일"].forEach(d=>r.days.add(d));
+  const m=q.match(/[월화수목금토일]{2,7}(?=\s|요일|$|,|에)/g); if(m)m.forEach(s=>[...s].forEach(d=>r.days.add(d)));
+  for(const d of DAYS){if(new RegExp(d+"요일").test(q))r.days.add(d)}
+  const pm=/(오후|저녁|밤|퇴근)/.test(q);
+  let t=q.match(/(\d{1,2})\s*시\s*(이후|부터|넘어|이전|까지|전)?/);
+  if(t){let h=+t[1];if(pm&&h<12)h+=12;if(/이전|까지|전/.test(t[2]||""))r.to=h;else r.from=h}
+  else{if(/새벽|아침|오전/.test(q)){r.from=5;r.to=12}if(/점심/.test(q)){r.from=11;r.to=14}if(/오후/.test(q)&&!/저녁/.test(q)){r.from=12;r.to=18}if(/저녁|퇴근/.test(q)){r.from=18}if(/밤/.test(q)){r.from=20}}
+  const p=q.match(/(\d+(?:\.\d+)?)\s*만\s*원?/); if(p)r.max=Math.round(+p[1]*10000);
+  if(/청소년|학생|아이|자녀|중학생|고등학생/.test(q))r.target="청소년"; if(/여성|여자/.test(q))r.target="여성";
+  let sp=[];for(const k in SYN)if(q.includes(k))sp.push(...SYN[k]);for(const k in GOAL)if(q.includes(k)){sp.push(...GOAL[k]);r.notes.push(`'${k}' 목적 → ${GOAL[k].join("·")}`)}
+  if(sp.length)r.sports=[...new Set(sp)];
+  return r}
+function apply(r){st.days=r.days;$("from").value=r.from;$("to").value=r.to;$("max").value=r.max;$("center").value=r.center;$("target").value=r.target;st.sports=r.sports;$("sport").value=r.sports&&r.sports.length===1?r.sports[0]:"";
+  const parts=[];if(r.center)parts.push(r.center);if(r.days.size)parts.push([...r.days].join("")+"요일");if(r.from!=="")parts.push(r.from+"시 이후 시작");if(r.to!=="")parts.push(r.to+"시 전 종료");if(r.max)parts.push("월 "+(r.max/10000)+"만원 이하");if(r.target)parts.push(r.target);if(r.sports)parts.push("종목: "+r.sports.join("·"));
+  $("parsed").textContent=parts.length?"이렇게 이해했어요 → "+parts.join(" / ")+(r.notes.length?"  ("+r.notes.join(", ")+")":""):"조건을 찾지 못했어요. 아래에서 직접 골라 주세요.";render()}
+let shown=30;
+function filt(){
+  const from=$("from").value,to=$("to").value,max=+$("max").value||0,center=$("center").value,sport=$("sport").value,tg=$("target").value;
+  const sports=sport?[sport]:st.sports;
+  return C.filter(c=>{
+    if(center&&c.center!==center)return false;
+    if(sports&&!sports.some(s=>c.sport===s||(c.sport||"").includes(s)||(c.name||"").includes(s)))return false;
+    if(from!==""&&toMin(c.start)<from*60)return false;
+    if(to!==""&&toMin(c.end)>to*60)return false;
+    if(max&&c.price>max)return false;
+    if(tg==="청소년"&&!/청소년|전체|어린이/.test(c.target))return false;
+    if(tg==="성인"&&!/성인|전체/.test(c.target))return false;
+    if(tg==="여성"&&!/여성/.test(c.target))return false;
+    if(st.days.size){const cd=c.days.split(",").map(s=>s.trim()).filter(Boolean);if(!cd.length||!cd.every(d=>st.days.has(d)))return false}
+    return true}).sort((a,b)=>(a.price||9e9)-(b.price||9e9))}
+function why(c){const w=[];if(st.days.size)w.push(`${c.days} 수업이라 선택한 요일 안에서 다닐 수 있음`);const from=$("from").value;if(from!=="")w.push(`${c.start} 시작`);const max=+$("max").value;if(max)w.push(`월 ${c.price.toLocaleString()}원으로 예산 이내`);return w.join(" · ")}
+function render(){syncDays();const R=filt();
+  $("stat").textContent=`조건에 맞는 강좌 ${R.length.toLocaleString()}개 (전체 ${C.length.toLocaleString()}개 중)`+(R.length?" · 금액 낮은 순":"");
+  $("list").innerHTML=R.slice(0,shown).map(c=>`<div class="item"><div><b>${c.name}</b><div class="tags"><span class="tag">${c.center}</span><span class="tag">${c.sport}</span><span class="tag">${c.days}</span><span class="tag">${c.start}~${c.end}</span>${c.target&&c.target!=="미기재"?`<span class="tag">${c.target}</span>`:""}${c.cap?`<span class="tag">정원 ${c.cap}명</span>`:""}</div>${why(c)?`<div class="why">${why(c)}</div>`:""}</div><div class="price">${c.price?c.price.toLocaleString()+"원":"금액 미기재"}</div></div>`).join("")||`<div class="card note">맞는 강좌가 없어요. 요일이나 시간을 조금 넓혀 보세요.</div>`;
+  $("more").hidden=R.length<=shown;
+  const keys=new Set(R.slice(0,50).map(c=>c.sport));const V=D.videos.filter(v=>[...keys].some(k=>v.t.includes(k)||k.includes(v.t))).slice(0,5);
+  $("videos").innerHTML=V.length?V.map(v=>`<div><a href="${v.u}" target="_blank" rel="noopener">${v.t}</a> <span class="note">조회 ${(+v.n).toLocaleString()}</span></div>`).join(""):"관련 영상이 없어요.";
+}
+function faq(){$("faq").innerHTML=D.faq.filter(f=>/스포츠센터|강좌|수강|환불|주차|회원/.test(f.q+f.a)).slice(0,6).map(f=>`<details><summary>${f.q}</summary><div class="note">${f.a}</div></details>`).join("")||D.faq.slice(0,5).map(f=>`<details><summary>${f.q}</summary><div class="note">${f.a}</div></details>`).join("")}
+fillTimes();fillSports();fillDays();faq();
+["center","sport","from","to","max","target"].forEach(id=>$(id).addEventListener("input",()=>{if(id==="sport")st.sports=null;shown=30;render()}));
+$("go").onclick=()=>{shown=30;apply(parse($("q").value))};$("q").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click()});
+document.querySelectorAll(".ex a").forEach(a=>a.onclick=()=>{$("q").value=a.dataset.q;$("go").click()});
+$("reset").onclick=()=>{apply({days:new Set(),from:"",to:"",max:"",center:"",sports:null,target:"",notes:[]});$("q").value="";$("parsed").textContent=""};
+$("more").onclick=()=>{shown+=30;render()};
+render();
+</script>
+</body>
+</html>
