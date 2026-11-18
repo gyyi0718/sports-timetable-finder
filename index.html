@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>내 시간표 운동 찾기</title>
 <style>
-:root{color-scheme:light;--bg:#ffffff;--card:#ffffff;--ink:#182c47;--sub:#5d6d83;--line:#dce6f2;--accent:#1764df;--accent2:#edf5ff;--warn:#c74736;--coral-soft:#fff0eb;--header:linear-gradient(125deg,#e8f4ff 0%,#f3f9ff 55%,#fff0e9 100%);--shadow:0 8px 28px rgb(30 77 131 / 7%);--shadow-hover:0 12px 32px rgb(30 77 131 / 12%)}
+:root{color-scheme:light;--bg:#fffaf0;--card:#ffffff;--ink:#2b2118;--sub:#7a6a58;--line:#ffe2b8;--accent:#ff7a00;--accent2:#e9fbf2;--warn:#e8336d;--coral-soft:#ffe9f0;--header:linear-gradient(120deg,#ffe259 0%,#ffb347 50%,#ff7eb3 100%);--shadow:0 8px 24px rgb(255 140 0 / 12%);--shadow-hover:0 12px 30px rgb(255 120 0 / 20%)}
 :root[data-theme=dark]{color-scheme:dark;--bg:#101b2b;--card:#18263a;--ink:#edf4ff;--sub:#afbed2;--line:#33465e;--accent:#91bcff;--accent2:#203957;--warn:#ffab98;--coral-soft:#3c2b30;--header:linear-gradient(125deg,#193451 0%,#192a42 55%,#382b38 100%);--shadow:0 8px 28px rgb(0 0 0 / 18%);--shadow-hover:0 12px 32px rgb(0 0 0 / 26%)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
@@ -60,6 +60,7 @@ details[open] summary{margin-bottom:8px;color:var(--accent)}
 .cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start;gap:22px}
 .more{display:block;min-width:160px;margin:20px auto 0;border-radius:999px}
 [hidden]{display:none !important}
+.tag{background:#e9fbf2;color:#0a9b63}.tag:nth-child(2){background:#fff4cc;color:#b86e00}.parsed:not(:empty){background:#fff4cc;color:#b35a00}.parsed{color:#b35a00}.wrap>h1{color:#3a1f00}.lead{color:#5a3a12}.days span.on{color:#fff}button{color:#fff}button.ghost{color:var(--accent)}.ex a,.side a{color:#e86a00}
 @media (hover:hover){button:not(:disabled):hover{transform:translateY(-1px);box-shadow:var(--shadow-hover)}button.ghost:hover{border-color:var(--accent);background:var(--accent2)}.days span:not(.on):hover{border-color:var(--accent);background:var(--accent2);color:var(--accent)}.item:hover{border-color:var(--accent);box-shadow:var(--shadow-hover)}}
 @media (max-width:760px){.wrap{padding:16px 16px 40px}.wrap>h1{padding:24px 20px 8px}.lead{margin-bottom:20px;padding:0 20px 24px}.card{padding:20px}.cols{grid-template-columns:minmax(0,1fr);gap:24px}}
 @media (max-width:480px){.card,.side .card,.item{padding:16px;border-radius:16px}.ask input,.ask button{flex-basis:100%;width:100%}.grid{grid-template-columns:minmax(0,1fr);gap:14px}.item{gap:14px}.price{font-size:18px}.days{gap:6px}}
